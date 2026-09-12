@@ -1,0 +1,33 @@
+# Configuration 3 -- Personalized.
+# profile -> retrieval -> deterministic tools -> personalization -> candidate
+# evaluation -> recommendation.
+
+config_name: "personalized"
+description: >
+  Configuration 3: retrieval, deterministic tools, and personalization are active;
+  candidates are drawn from the frozen catalogue, but there is no formal suitability
+  filter -- ranking is not gated by hard constraints.
+
+modules:
+  use_rag: true
+  use_tools: true
+  use_personalization: true
+  use_constraints: false
+  use_candidate_catalogue: true
+
+explanation_type: "narrative"
+prompt_version: "personalized-v1"
+
+# Phase 6A note: retrieval stays enabled here because it was already required by
+# the frozen Configuration 3 definition (docs/experiment_design.md) -- "no RAG
+# unless explicitly required by the experiment design" is satisfied by that
+# earlier freeze, not overridden by it. tool_config stays enabled for the same
+# reason (deterministic calculators, distinct from the constraints/guardrail
+# pipeline, which stays off via modules.use_constraints above).
+retrieval:
+  enabled: true
+  top_k: 5
+  index_version: "unversioned"
+
+tool_config:
+  enabled: true

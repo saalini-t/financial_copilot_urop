@@ -1,0 +1,28 @@
+# Configuration 4 -- Full proposed copilot.
+# profile + query -> intent classification -> bounded candidate catalogue -> retrieval
+# -> deterministic tools -> personalization -> hard constraints -> candidate ranking
+# -> confidence/abstention -> recommendation -> artifact-based explanation -> audit record.
+
+config_name: "full_copilot"
+description: >
+  Configuration 4: every module is active, including the hard-constraint suitability
+  filter, deterministic confidence/abstention, and artifact-based explanation with
+  a full audit record.
+
+modules:
+  use_rag: true
+  use_tools: true
+  use_personalization: true
+  use_constraints: true
+  use_candidate_catalogue: true
+
+explanation_type: "artifact_based"
+prompt_version: "full-copilot-v1"
+
+retrieval:
+  enabled: true
+  top_k: 5
+  index_version: "unversioned"
+
+tool_config:
+  enabled: true

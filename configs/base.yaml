@@ -1,0 +1,17 @@
+# Shared defaults. Every configs/*.yaml file is merged over this one --
+# a specific config only needs to state what it overrides.
+
+catalogue_version: "1.0.0"
+ground_truth_engine_version: "1.0.0"
+random_seed: 42
+min_confidence: 0.60
+tie_epsilon: 1.0e-6
+
+scoring_weights:
+  w_goal: 0.4
+  w_risk: 0.3
+  w_obj: 0.2
+  w_liq: 0.1
+
+model_id: "mock-llm"
+temperature: 0.0

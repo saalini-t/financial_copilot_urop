@@ -1,0 +1,23 @@
+# Configuration 1 -- Baseline LLM.
+# query -> LLM -> recommendation -> free-form explanation.
+
+config_name: "baseline"
+description: >
+  Configuration 1: no retrieval, no deterministic tools, no personalization engine,
+  no constraint engine, no artifact-based explanation.
+
+modules:
+  use_rag: false
+  use_tools: false
+  use_personalization: false
+  use_constraints: false
+  use_candidate_catalogue: false
+
+explanation_type: "free_form"
+prompt_version: "baseline-v1"
+
+retrieval:
+  enabled: false
+
+tool_config:
+  enabled: false
