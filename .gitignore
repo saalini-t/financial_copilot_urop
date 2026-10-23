@@ -31,3 +31,9 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+
+# External datasets (Research Upgrade Plan, Phase 3) -- large, third-party,
+# competition/licence terms not yet verified for redistribution. Stays local
+# only; provenance and restrictions are documented separately in
+# docs/dataset_cards/, which IS tracked.
+data/external/

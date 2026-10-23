@@ -1,0 +1,16 @@
+You are being asked a household financial question as part of a research benchmark. Answer using ONLY the information given in the question below. Do not assume any other facts about the person asking -- you have not been given their income, savings, goals, or any other profile information, and you must not invent any.
+
+Question:
+{question}
+
+Respond with a single JSON object, and nothing else, in exactly this shape:
+{{
+  "decision": "<a short phrase naming your recommended action>",
+  "explanation": "<2-4 sentences justifying your recommendation>",
+  "abstain": <true or false>,
+  "abstention_reason": "<a short reason if abstain is true, otherwise null>"
+}}
+
+Set "abstain" to true only if the question does not give you enough information to make a responsible recommendation. If you abstain, explain what information is missing in "abstention_reason" and leave "decision" as an empty string.
+
+Do not include any text outside the JSON object. Do not wrap the JSON in markdown code fences.

@@ -1,6 +1,6 @@
 {
-  "manifest_version": "1.0.0",
-  "generated_at": "2026-09-12T13:46:13.829520+00:00",
+  "manifest_version": "1.1.0",
+  "generated_at": "2026-10-19T17:17:18.910750+00:00",
   "dataset_version": "v1.0",
   "scenario_dataset_version": "v1.0",
   "ground_truth_dataset_version": "v1.0",
@@ -5010,5 +5010,11 @@
     "S004998",
     "S004999",
     "S005000"
-  ]
+  ],
+  "checksums": {
+    "algorithm": "sha256",
+    "users_json": "55005b8f57917b5fcc65c65e8253b32b55d0dc6c43090829b807398d64111e01",
+    "scenarios_json": "a8af39646c2f5a51b046a3d8fee4fd0809a55557cd089488f1220f9ca88a7417",
+    "ground_truth_json": "336d398034b374fd0630620e089f32961938a91608aebe7bc8d3fd5523e9a055"
+  }
 }

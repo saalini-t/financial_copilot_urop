@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,12 +23,18 @@ if str(REPO_ROOT) not in sys.path:
 
 from src.utils import load_json, save_json
 
-MANIFEST_VERSION = "1.0.0"
+MANIFEST_VERSION = "1.1.0"  # 1.1.0 adds `checksums` (Research Upgrade Plan, Phase 2)
 
 DEFAULT_USERS_PATH = REPO_ROOT / "data" / "synthetic" / "users.json"
 DEFAULT_SCENARIOS_PATH = REPO_ROOT / "data" / "synthetic" / "scenarios.json"
 DEFAULT_GROUND_TRUTH_PATH = REPO_ROOT / "data" / "synthetic" / "ground_truth.json"
 DEFAULT_MANIFEST_PATH = REPO_ROOT / "data" / "synthetic" / "experiment_manifest.json"
+
+
+def _sha256_of_file(path: Path) -> str:
+    """Hash the file's exact bytes on disk -- not the parsed JSON -- so the
+    checksum also catches whitespace/encoding drift, not just content drift."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def build_manifest(
@@ -37,7 +44,12 @@ def build_manifest(
 ) -> dict:
     """Read the three frozen datasets' own metadata and scenario IDs -- never
     their content beyond that. The scenario_ids list preserves file order
-    (S000001, S000002, ... ), which is itself deterministic (Phase 4)."""
+    (S000001, S000002, ... ), which is itself deterministic (Phase 4).
+
+    Also records a SHA-256 checksum of each frozen dataset file as it exists
+    on disk right now (Research Upgrade Plan, Phase 2) -- a fast, independent
+    way to confirm later that none of the three has been altered, without
+    re-parsing or re-validating their full contents."""
     users_raw = load_json(users_path)
     scenarios_raw = load_json(scenarios_path)
     ground_truth_raw = load_json(ground_truth_path)
@@ -60,6 +72,12 @@ def build_manifest(
         "user_count": users_meta.get("num_users"),
         "scenario_count": len(scenario_ids),
         "scenario_ids": scenario_ids,
+        "checksums": {
+            "algorithm": "sha256",
+            "users_json": _sha256_of_file(users_path),
+            "scenarios_json": _sha256_of_file(scenarios_path),
+            "ground_truth_json": _sha256_of_file(ground_truth_path),
+        },
     }
 
 

@@ -56,6 +56,19 @@ datasets twice produces byte-identical `ground_truth` records and metadata
 (aside from the `generated_at` timestamp) — reverified after the Phase 5 audit's
 investment-scoring fix (see `docs/ground_truth_scoring.md`).
 
+## File-integrity checksums (Research Upgrade Plan, Phase 2)
+
+`data/synthetic/experiment_manifest.json` (built by `experiments/manifest.py`,
+`manifest_version` `1.1.0`) records a SHA-256 checksum of each frozen dataset
+file's exact bytes on disk — `users.json`, `scenarios.json`,
+`ground_truth.json` — under its `checksums` key. This is a fast, independent
+way to confirm later that none of the three files has drifted (not even
+whitespace or encoding), without re-parsing or re-validating their full
+contents. Regenerating the manifest from unmodified files reproduces the same
+three digests exactly (`test_manifest_checksums_are_reproducible_and_file_specific`).
+A changed digest for any of the three means that file is no longer the one
+every prior phase's results and tests were computed against.
+
 ## Two invariants
 
 The same scenario IDs are evaluated across all four configurations — synthetic

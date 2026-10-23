@@ -5,6 +5,11 @@ frozen data/synthetic/ files. Runner-behavior tests build a small synthetic
 population in tmp_path via the existing Phase 3/4 generators, so they stay
 fast and isolated from the large real dataset while still exercising the full
 load -> build_experiment_input -> dispatch -> validate -> persist pipeline.
+
+Since Phase 5, `baseline` calls a real local Ollama model by default -- the
+autouse `_mock_baseline_llm` fixture below patches that construction point
+for every test in this file, so the orchestration layer is still exercised
+end to end without ever requiring a running Ollama service.
 """
 
 from pathlib import Path
@@ -24,6 +29,7 @@ from simulations.generate_scenarios import build_dataset as build_scenarios_data
 from simulations.generate_scenarios import generate_scenarios
 from simulations.generate_users import build_dataset as build_users_dataset
 from simulations.generate_users import generate_users
+from src.agents._llm_client import LLMResponse
 from src.config import load_config
 from src.models.experiment import ConfigurationName, build_experiment_input
 from src.models.response import ExperimentOutput
@@ -31,6 +37,26 @@ from src.utils import load_json, save_json
 
 CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
 ALL_CONFIGS = list(ConfigurationName)
+
+
+class _FakeOllamaLLMClient:
+    """See tests/test_experiment_contracts.py's identical fixture for why
+    this is defined per-file rather than in a shared conftest.py."""
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def generate(self, prompt, temperature=0.0):
+        return LLMResponse(
+            raw_text='{"decision": "Increase savings", "explanation": "Mocked for offline runner tests.", '
+            '"abstain": false, "abstention_reason": null}',
+            model="qwen2.5:3b",
+        )
+
+
+@pytest.fixture(autouse=True)
+def _mock_baseline_llm(monkeypatch):
+    monkeypatch.setattr("src.agents.baseline.OllamaLLMClient", _FakeOllamaLLMClient)
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +86,32 @@ def test_manifest_records_dataset_versions_and_seed():
         "scenario_count",
     ):
         assert manifest[field] is not None, field
+
+
+def test_manifest_checksums_are_present_and_well_formed():
+    manifest = build_manifest()
+    checksums = manifest["checksums"]
+    assert checksums["algorithm"] == "sha256"
+    for key in ("users_json", "scenarios_json", "ground_truth_json"):
+        digest = checksums[key]
+        assert len(digest) == 64, key
+        int(digest, 16)  # raises ValueError if it isn't valid hex
+
+
+def test_manifest_checksums_are_reproducible_and_file_specific():
+    import hashlib
+
+    first = build_manifest()["checksums"]
+    second = build_manifest()["checksums"]
+    assert first == second, "re-hashing the same unmodified files must give the same digest"
+
+    # Independently recompute one digest by hand, outside build_manifest's own
+    # helper, to prove the stored value actually reflects the real file bytes.
+    expected_users_digest = hashlib.sha256(DEFAULT_USERS_PATH.read_bytes()).hexdigest()
+    assert first["users_json"] == expected_users_digest
+
+    # The three files are different, so their digests must be too.
+    assert len({first["users_json"], first["scenarios_json"], first["ground_truth_json"]}) == 3
 
 
 def test_manifest_does_not_modify_source_datasets():

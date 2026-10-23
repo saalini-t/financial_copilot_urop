@@ -16,6 +16,11 @@ modules:
 explanation_type: "free_form"
 prompt_version: "baseline-v1"
 
+# Phase 5: the only configuration with a real model wired in so far. The
+# other three configs still inherit base.yaml's "mock-llm" placeholder until
+# their own real logic exists.
+model_id: "qwen2.5:3b"
+
 retrieval:
   enabled: false
 

@@ -1,9 +1,14 @@
 """Tests for the Phase 6A frozen experimental interface and configuration contracts.
 
-None of these tests exercise real reasoning -- src/agents/*.py are placeholder
-stubs (src/agents/_stub.py). The point of this suite is to verify the CONTRACT:
-same input schema, same output schema, preserved identifiers, no mutation, and
-the structural fairness guarantee that baseline/rag cannot receive a profile.
+rag/personalized/full_copilot are still placeholder stubs (src/agents/_stub.py).
+baseline (Phase 5) now calls a real local Ollama model by default -- every test
+in this file is kept offline via the autouse `_mock_baseline_llm` fixture below,
+which patches baseline's LLM client construction point before each test runs,
+so this file never depends on a running Ollama service. The point of this suite
+is still to verify the CONTRACT: same input schema, same output schema,
+preserved identifiers, no mutation, and the structural fairness guarantee that
+baseline/rag cannot receive a profile -- not to test baseline's real inference
+logic, which has its own dedicated tests in tests/test_baseline_agent.py.
 """
 
 import copy
@@ -13,6 +18,7 @@ from pathlib import Path
 import pytest
 
 from src.agents import baseline, full_copilot, personalized, rag
+from src.agents._llm_client import LLMResponse
 from src.config import ExperimentConfig, load_config
 from src.models.experiment import (
     ConfigurationName,
@@ -30,6 +36,30 @@ LADDER_FILES = ["baseline.yaml", "rag.yaml", "personalized.yaml", "full_copilot.
 
 NO_PROFILE_AGENTS = {"baseline": baseline, "rag": rag}
 PROFILE_AGENTS = {"personalized": personalized, "full_copilot": full_copilot}
+
+
+class _FakeOllamaLLMClient:
+    """Stands in for OllamaLLMClient in every test in this file -- returns a
+    fixed, valid decision so contract tests see realistic, non-abstaining
+    output without ever making a network call."""
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def generate(self, prompt, temperature=0.0):
+        return LLMResponse(
+            raw_text='{"decision": "Increase savings", "explanation": "Mocked for offline contract tests.", '
+            '"abstain": false, "abstention_reason": null}',
+            model="qwen2.5:3b",
+        )
+
+
+@pytest.fixture(autouse=True)
+def _mock_baseline_llm(monkeypatch):
+    """File-scoped (defined here, not in a shared conftest.py) so only tests
+    in this file are affected -- tests/test_baseline_llm_smoke.py never
+    imports this fixture and so uses the real client, by design."""
+    monkeypatch.setattr("src.agents.baseline.OllamaLLMClient", _FakeOllamaLLMClient)
 
 
 @pytest.fixture

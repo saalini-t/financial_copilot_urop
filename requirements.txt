@@ -2,3 +2,5 @@ pydantic>=2.6
 pyyaml>=6.0
 numpy>=1.26
 pytest>=7.4
+rank-bm25==0.2.2
+pymupdf==1.27.2
